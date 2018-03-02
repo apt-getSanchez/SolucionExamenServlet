@@ -3,7 +3,15 @@ package es.salesianos.Model;
 public class Console {
 
 	private String name;
-	private Integer codCompany;
+	private Integer companyId;
+
+	public int getCompanyId() {
+		return companyId;
+	}
+
+	public void setCompanyId(int companyId) {
+		this.companyId = companyId;
+	}
 
 	public String getName() {
 		return name;
@@ -11,13 +19,5 @@ public class Console {
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public int getCodCompany() {
-		return codCompany;
-	}
-
-	public void setCodCompany(Integer codCompany) {
-		this.codCompany = codCompany;
 	}
 }
