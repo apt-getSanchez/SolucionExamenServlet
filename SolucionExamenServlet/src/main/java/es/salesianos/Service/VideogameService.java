@@ -1,35 +1,44 @@
 package es.salesianos.Service;
 
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import es.salesianos.Assembler.VideogameAssembler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import es.salesianos.Model.Videogame;
-import es.salesianos.Repository.VideogameRepository;
+import es.salesianos.Repository.*;
 
-public class VideogameService {
+@Service
+public class VideogameService implements es.salesianos.Service.Service<Videogame> {
+	private static Logger log = LogManager.getLogger(ConsoleService.class);
+	@Autowired
+	private VideogameRepository repository;
 
-	private VideogameRepository repository = new VideogameRepository();
-
-	public void createNewVideogameFromRequest(HttpServletRequest req) {
-		Videogame videogame = VideogameAssembler.assembleVideogameForm(req);
-		insertOrUpdate(videogame);
+	@Override
+	public void insert(Videogame VideogameForm) {
+		repository.insertVideogame(VideogameForm);
 	}
 
-	public void insertOrUpdate(Videogame videogameForm) {
-		Videogame videogameInDatabase = repository.search(videogameForm);
-		if (null == videogameInDatabase) {
-			repository.insert(videogameForm);
-		} else {
-			repository.update(videogameForm);
-		}
-	}
-
-	public List<Videogame> listAllVideogame() {
+	@Override
+	public List<Videogame> listAll() {
 		return repository.searchAll();
 	}
 
-	public void deleteVideogame(Videogame videogameToDelete) {
-		repository.delete(videogameToDelete);
+	@Override
+	public void delete(String videogame) {
+		repository.delete(videogame);
+	}
+
+	public List<Videogame> listAllByCompany(int idCompany) {
+		return repository.selectByCompany(idCompany);
+	}
+
+	public List<Videogame> OrderByTitle() {
+		return repository.orderByTitle();
+	}
+
+	public List<Videogame> OrderByReleaseDate() {
+		return repository.orderByReleaseDate();
 	}
 
 	public VideogameRepository getRepository() {
@@ -38,9 +47,5 @@ public class VideogameService {
 
 	public void setRepository(VideogameRepository repository) {
 		this.repository = repository;
-	}
-
-	public List<Videogame> listAllByCompany(int id) {
-		return repository.selectByCompany(id);
 	}
 }

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee ;http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+	version="3.1">
+	
+  <display-name>Archetype Created Web Application</display-name>
+  
+	<servlet>
+		<servlet-name>CompanyServlet</servlet-name>
+		<servlet-class>es.salesianos.Servlet.CompanyServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>CompanyServlet</servlet-name>
+		<url-pattern>company</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ConsoleServlet</servlet-name>
+		<servlet-class>es.salesianos.Servlet.ConsoleServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ConsoleServlet</servlet-name>
+		<url-pattern>console</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>VideogameServlet</servlet-name>
+		<servlet-class>es.salesianos.Servlet.VideogameServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>VideogameServlet</servlet-name>
+		<url-pattern>videogame</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>VideogameDataListServlet</servlet-name>
+		<servlet-class>es.salesianos.servlet.VideogameDataListServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>VideogameDataListServlet</servlet-name>
+		<url-pattern>dataGames</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ConsoleDataListServlet</servlet-name>
+		<servlet-class>es.salesianos.Servlet.ConsoleDataListServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ConsoleDataListServlet</servlet-name>
+		<url-pattern>dataConsoles</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>DeleteConsoleServlet</servlet-name>
+		<servlet-class>es.salesianos.Servlet.DeleteConsoleServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>DeleteConsoleServlet</servlet-name>
+		<url-pattern>deleteConsole</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>DeleteVideogameServlet</servlet-name>
+		<servlet-class>es.salesianos.Servlet.DeleteVideogameServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>DeleteVideogameServlet</servlet-name>
+		<url-pattern>deleteVideogame</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ListConsoleByCompanyServlet</servlet-name>
+		<servlet-class>es.salesianos.Servlet.ListConsoleByCompanyServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ListConsoleByCompanyServlet</servlet-name>
+		<url-pattern>listByConsole</url-pattern>
+	</servlet-mapping>
+<!--   -->
+	<servlet>
+		<servlet-name>VideogameByCompany</servlet-name>
+		<servlet-class>es.salesianos.Servlet.VideogameByCompany</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>VideogameByCompany</servlet-name>
+		<url-pattern>videogameByCompany</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>ListCompanyVideogame</servlet-name>
+		<servlet-class>es.salesianos.ListCompanyVideogame</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ListCompanyVideogame</servlet-name>
+		<url-pattern>listByVideogame</url-pattern>
+	</servlet-mapping>
+</web-app>

@@ -1,37 +1,33 @@
 package es.salesianos.Service;
 
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import es.salesianos.Assembler.CompanyAssembler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import es.salesianos.Model.Company;
-import es.salesianos.Model.Console;
-import es.salesianos.Repository.CompanyRepository;
+import es.salesianos.Repository.*;
 
-public class CompanyService {
+@Service
+public class CompanyService implements es.salesianos.Service.Service<Company> {
 
-	CompanyAssembler assembler = new CompanyAssembler();
-	private CompanyRepository repository = new CompanyRepository();
+	private static Logger log = LogManager.getLogger(CompanyService.class);
+	@Autowired
+	private CompanyRepository repository;
 
-	public Company assembleUserFromRequest(HttpServletRequest req) {
-		return CompanyAssembler.assembleCompanyFrom(req);
+	@Override
+	public void insert(Company companyForm) {
+		repository.insertCompany(companyForm);
 	}
 
-	public void createNewCompanyFromRequest(HttpServletRequest req) {
-		Company company = CompanyAssembler.assembleCompanyFrom(req);
-		insertOrUpdate(company);
-	}
-
-	public void insertOrUpdate(Company companyForm) {
-		Company companyInDatabase = repository.search(companyForm);
-		if (null == companyInDatabase) {
-			repository.insert(companyForm);
-		} else {
-			repository.update(companyForm);
-		}
-	}
-
-	public List<Company> listAllCompany() {
+	@Override
+	public List<Company> listAll() {
 		return repository.searchAll();
+	}
+
+	@Override
+	public void delete(String companyForm) {
+		repository.delete(companyForm);
 	}
 
 	public CompanyRepository getRepository() {
@@ -42,7 +38,4 @@ public class CompanyService {
 		this.repository = repository;
 	}
 
-	public List<Console> listAllByCompany(int id) {
-		return null;
-	}
 }

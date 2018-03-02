@@ -1,169 +1,100 @@
 package es.salesianos.Repository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
-import es.salesianos.Connection.AbstractConnection;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
 import es.salesianos.Model.Videogame;
 
+@Component
 public class VideogameRepository {
+	private static Logger log = LogManager.getLogger(ConsoleRepository.class);
 
-	private AbstractConnection connection = new AbstractConnection() {
+	@Autowired
+	private JdbcTemplate template;
 
-		@Override
-		public String getDriver() {
-			return "org.h2.Driver";
-		}
+	@Autowired
+	private NamedParameterJdbcTemplate namedJdbcTemplate;
 
-		@Override
-		public String getDatabaseUser() {
-			return "sa";
-		}
-
-		@Override
-		public String getDatabasePassword() {
-			return "";
-		}
-	};
-
-	private static final String jdbcUrl = "jdbc:h2:file:./src/main/resources/test;INIT=RUNSCRIPT FROM 'classpath:scripts/VideoGame.sql'";
-
-	public void insert(Videogame gameForm) {
-		Connection connect = connection.open(jdbcUrl);
-		PreparedStatement preparedStatement = null;
-		try {
-			preparedStatement = connect
-					.prepareStatement("INSERT INTO GAME (title,pegi,releaseDate)" + "VALUES (?, ?, ?)");
-			preparedStatement.setString(1, gameForm.getTitle());
-			preparedStatement.setInt(2, gameForm.getPegi());
-			preparedStatement.setDate(3, gameForm.getReleaseDate());
-			preparedStatement.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			Utilities.close(preparedStatement);
-			Utilities.close(connect);
-		}
-	}
-
-	public void update(Videogame videogame) {
-		Connection connect = null;
-		PreparedStatement preparedStatement = null;
-		try {
-			connect = connection.open(jdbcUrl);
-			preparedStatement = connect
-					.prepareStatement("UPDATE GAME SET " + "title = ?, pegi = ?, releaseDate = ? WHERE title = ?");
-			preparedStatement.setString(1, videogame.getTitle());
-			preparedStatement.setInt(2, videogame.getPegi());
-			preparedStatement.setDate(3, videogame.getReleaseDate());
-			preparedStatement.executeUpdate();
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			Utilities.close(preparedStatement);
-			Utilities.close(connect);
-		}
-	}
-
-	public Videogame search(Videogame gameForm) {
-		Videogame videogameInDatabase = null;
-		ResultSet resultSet = null;
-		PreparedStatement prepareStatement = null;
-		Connection connect = connection.open(jdbcUrl);
-		try {
-			prepareStatement = connect.prepareStatement("SELECT * FROM GAME WHERE title = ?");
-			prepareStatement.setString(1, gameForm.getTitle());
-			resultSet = prepareStatement.executeQuery();
-			while (resultSet.next()) {
-				videogameInDatabase = new Videogame();
-				videogameInDatabase.setTitle(resultSet.getString(0));
-				videogameInDatabase.setPegi(resultSet.getInt(2));
-				videogameInDatabase.setReleaseDate(resultSet.getDate(3));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			Utilities.close(resultSet);
-			Utilities.close(prepareStatement);
-			Utilities.close(connect);
-		}
-		return videogameInDatabase;
+	public void insertVideogame(Videogame videogameForm) {
+		log.debug("succesful insert");
+		String sql = "INSERT INTO VIDEOGAME (title, pegi, releaseDate, companyId)"
+				+ "VALUES ( :title, :pegi, :releaseDate, :companyId)";
+		MapSqlParameterSource params = new MapSqlParameterSource();
+		params.addValue("name", videogameForm.getTitle());
+		params.addValue("pegi", videogameForm.getPegi());
+		params.addValue("releaseDate", videogameForm.getReleaseDate());
+		params.addValue("companyId", videogameForm.getCompanyId());
+		namedJdbcTemplate.update(sql, params);
 	}
 
 	public List<Videogame> searchAll() {
-		List<Videogame> listGame = new ArrayList<Videogame>();
-		Connection connect = connection.open(jdbcUrl);
-		ResultSet resultSet = null;
-		PreparedStatement prepareStatement = null;
-		try {
-			prepareStatement = connect.prepareStatement("SELECT * FROM GAME");
-			resultSet = prepareStatement.executeQuery();
-			while (resultSet.next()) {
-				Videogame videogameInDatabase = new Videogame();
-				videogameInDatabase.setTitle(resultSet.getString(1));
-				videogameInDatabase.setPegi(resultSet.getInt(2));
-				videogameInDatabase.setReleaseDate(resultSet.getDate(3));
-				listGame.add(videogameInDatabase);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			Utilities.close(resultSet);
-			Utilities.close(prepareStatement);
-			Utilities.close(connect);
-		}
-
-		return listGame;
-	}
-
-	public void delete(Videogame videogame) {
-		Connection connect = null;
-		PreparedStatement preparedStatement = null;
-		try {
-			connect = connection.open(jdbcUrl);
-			preparedStatement = connect.prepareStatement("DELETE * FROM GAME  WHERE title = ?");
-			preparedStatement.setString(1, videogame.getTitle());
-			preparedStatement.executeUpdate();
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			Utilities.close(preparedStatement);
-			Utilities.close(connect);
-		}
+		String sql = "SELECT * FROM VIDEOGAME";
+		List<Videogame> listVideogame = template.query(sql, new BeanPropertyRowMapper(Videogame.class));
+		return listVideogame;
 	}
 
 	public List<Videogame> selectByCompany(int id) {
 		List<Videogame> listVideogame = new ArrayList<Videogame>();
-		Connection connect = connection.open(jdbcUrl);
-		ResultSet resultSet = null;
-		PreparedStatement prepareStatement = null;
-		try {
-			prepareStatement = connect.prepareStatement("SELECT * FROM GAME WHERE companyID = ?");
-			prepareStatement.setString(1, id + "");
-			resultSet = prepareStatement.executeQuery();
-			while (resultSet.next()) {
-				Videogame gameDb = new Videogame();
-				gameDb.setTitle(resultSet.getString(1));
-				gameDb.setPegi(resultSet.getInt(2));
-				gameDb.setReleaseDate(resultSet.getDate(3));
-				listVideogame.add(gameDb);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			Utilities.close(resultSet);
-			Utilities.close(prepareStatement);
-			Utilities.close(connect);
+		List<Map<String, Object>> rows = namedJdbcTemplate.queryForList("SELECT * FROM VIDEOGAME WHERE companyId = ?",
+				new MapSqlParameterSource("companyId", String.valueOf(id)));
+		for (Map row : rows) {
+			Videogame videogame = new Videogame();
+			videogame.setTitle((String) (row.get("title")));
+			videogame.setPegi((Integer) (row.get("pegi")));
+			videogame.setReleaseDate(Date.valueOf((String) (row.get("releaseDate"))));
+			videogame.setCompanyId(Integer.parseInt(String.valueOf(row.get("companyId"))));
+			listVideogame.add(videogame);
 		}
 		return listVideogame;
 	}
+
+	public List<Videogame> orderByTitle() {
+		List<Videogame> listVideogame = new ArrayList<Videogame>();
+		List<Map<String, Object>> rows = namedJdbcTemplate.queryForList("SELECT * FROM VIDEOGAME ORDER BY title ASC",
+				new MapSqlParameterSource());
+		for (Map row : rows) {
+			Videogame videogame = new Videogame();
+			videogame.setTitle((String) (row.get("title")));
+			videogame.setPegi((Integer) (row.get("pegi")));
+			videogame.setReleaseDate(Date.valueOf((String) (row.get("releaseDate"))));
+			videogame.setCompanyId(Integer.parseInt(String.valueOf(row.get("companyId"))));
+			listVideogame.add(videogame);
+		}
+		return listVideogame;
+	}
+
+	public List<Videogame> orderByReleaseDate() {
+		List<Videogame> listVideogame = new ArrayList<Videogame>();
+		List<Map<String, Object>> rows = namedJdbcTemplate
+				.queryForList("SELECT * FROM VIDEOGAME ORDER BY releaseDate ASC", new MapSqlParameterSource());
+		for (Map row : rows) {
+			Videogame videogame = new Videogame();
+			videogame.setTitle((String) (row.get("title")));
+			videogame.setPegi((Integer) (row.get("pegi")));
+			videogame.setReleaseDate(Date.valueOf(String.valueOf(row.get("releaseDate"))));
+			videogame.setCompanyId(Integer.parseInt(String.valueOf(row.get("companyId"))));
+			listVideogame.add(videogame);
+		}
+		return listVideogame;
+	}
+
+	public void delete(String name) {
+		log.debug("tablename: Videogame");
+		MapSqlParameterSource params = new MapSqlParameterSource();
+		params.addValue("name", name);
+		String sql = "DELETE FROM VIDEOGAME WHERE title = '?'";
+		namedJdbcTemplate.update(sql, params);
+		log.debug(sql);
+	}
+
 }

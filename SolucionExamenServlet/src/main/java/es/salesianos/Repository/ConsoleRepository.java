@@ -1,163 +1,80 @@
 package es.salesianos.Repository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import es.salesianos.Connection.AbstractConnection;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
+
 import es.salesianos.Model.Console;
 
+@Component
 public class ConsoleRepository {
+	private static Logger log = LogManager.getLogger(ConsoleRepository.class);
 
-	private AbstractConnection connection = new AbstractConnection() {
+	@Autowired
+	private JdbcTemplate template;
 
-		@Override
-		public String getDriver() {
-			return "org.h2.Driver";
-		}
+	@Autowired
+	private NamedParameterJdbcTemplate namedJdbcTemplate;
 
-		@Override
-		public String getDatabaseUser() {
-			return "sa";
-		}
-
-		@Override
-		public String getDatabasePassword() {
-			return "";
-		}
-	};
-
-	private static final String jdbcUrl = "jdbc:h2:file:./src/main/resources/test;INIT=RUNSCRIPT FROM 'classpath:scripts/Console.sql'";
-
-	public Console search(Console consoleForm) {
-		Console consoleInDatabase = null;
-		ResultSet resultSet = null;
-		PreparedStatement prepareStatement = null;
-		Connection connect = null;
-		try {
-			connect = connection.open(jdbcUrl);
-			prepareStatement = connect.prepareStatement("SELECT * FROM CONSOLE WHERE name = ?");
-			prepareStatement.setString(1, consoleForm.getName());
-			resultSet = prepareStatement.executeQuery();
-			while (resultSet.next()) {
-				consoleInDatabase = new Console();
-				consoleInDatabase.setName(resultSet.getString(0));
-				consoleInDatabase.setCodCompany(resultSet.getInt(1));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			Utilities.close(resultSet);
-			Utilities.close(prepareStatement);
-			Utilities.close(connect);
-		}
-
-		return consoleInDatabase;
-	}
-
-	public void insert(Console consoleForm) {
-		Connection connect = connection.open(jdbcUrl);
-		PreparedStatement preparedStatement = null;
-		try {
-			preparedStatement = connect.prepareStatement("INSERT INTO CONSOLE (name,codCompany)" + "VALUES (?, ?)");
-			preparedStatement.setString(1, consoleForm.getName());
-			preparedStatement.setInt(2, consoleForm.getCodCompany());
-			preparedStatement.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			Utilities.close(preparedStatement);
-			Utilities.close(connect);
-		}
-	}
-
-	public void update(Console console) {
-		Connection connect = null;
-		PreparedStatement preparedStatement = null;
-		try {
-			connect = connection.open(jdbcUrl);
-			preparedStatement = connect
-					.prepareStatement("UPDATE CONSOLE SET " + "name = ?, codCompany = ? WHERE name = ?");
-			preparedStatement.setString(1, console.getName());
-			preparedStatement.setInt(2, console.getCodCompany());
-			preparedStatement.executeUpdate();
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			Utilities.close(preparedStatement);
-			Utilities.close(connect);
-		}
+	public void insertConsole(Console consoleForm) {
+		log.debug("log runs");
+		String sql = "INSERT INTO Console (name, companyId)" + " VALUES ( :name, :companyId)";
+		MapSqlParameterSource params = new MapSqlParameterSource();
+		params.addValue("name", consoleForm.getName());
+		params.addValue("companyId", consoleForm.getCompanyId());
+		namedJdbcTemplate.update(sql, params);
 	}
 
 	public List<Console> searchAll() {
-		List<Console> listGame = new ArrayList<Console>();
-		Connection connect = connection.open(jdbcUrl);
-		ResultSet resultSet = null;
-		PreparedStatement prepareStatement = null;
-		try {
-			prepareStatement = connect.prepareStatement("SELECT * FROM CONSOLE");
-			resultSet = prepareStatement.executeQuery();
-			while (resultSet.next()) {
-				Console consoleInDatabase = new Console();
-				consoleInDatabase.setName(resultSet.getString(1));
-				consoleInDatabase.setCodCompany(resultSet.getInt(2));
-				listGame.add(consoleInDatabase);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			Utilities.close(prepareStatement);
-			Utilities.close(connect);
-		}
-
-		return listGame;
-	}
-
-	public void delete(Console console) {
-		Connection connect = null;
-		PreparedStatement preparedStatement = null;
-		try {
-			connect = connection.open(jdbcUrl);
-			preparedStatement = connect.prepareStatement("DELETE * FROM CONSOLE  WHERE name = ?");
-			preparedStatement.setString(1, console.getName());
-			preparedStatement.executeUpdate();
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			Utilities.close(preparedStatement);
-			Utilities.close(connect);
-		}
+		String sql = "SELECT * FROM Console";
+		List<Console> listConsole = template.query(sql, new BeanPropertyRowMapper(Console.class));
+		return listConsole;
 	}
 
 	public List<Console> selectByCompany(int id) {
 		List<Console> listConsole = new ArrayList<Console>();
-		ResultSet resultSet = null;
-		PreparedStatement prepareStatement = null;
-		Connection connect = null;
-		try {
-			prepareStatement = connect.prepareStatement("SELECT * FROM CONSOLE WHERE companyId = ?");
-			prepareStatement.setString(1, id + "");
-			resultSet = prepareStatement.executeQuery();
-			while (resultSet.next()) {
-				Console consoleInDatabase = new Console();
-				consoleInDatabase.setName(resultSet.getString(1));
-				consoleInDatabase.setCodCompany(resultSet.getInt(2));
-				listConsole.add(consoleInDatabase);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			Utilities.close(prepareStatement);
-			Utilities.close(connect);
+		List<Map<String, Object>> rows = namedJdbcTemplate.queryForList("SELECT * FROM Console WHERE companyId = ?",
+				new MapSqlParameterSource("companyId", String.valueOf(id)));
+		for (Map row : rows) {
+			Console console = new Console();
+			console.setName((String) (row.get("name")));
+			console.setCompanyId(Integer.parseInt(String.valueOf(row.get("companyId"))));
+			listConsole.add(console);
 		}
 		return listConsole;
+	}
+
+	public void delete(String name) {
+		log.debug("tablename: Console");
+		MapSqlParameterSource params = new MapSqlParameterSource();
+		params.addValue("name", name);
+		String sql = "DELETE FROM Console WHERE name = '?'";
+		namedJdbcTemplate.update(sql, params);
+		log.debug(sql);
+	}
+
+	public JdbcTemplate getTemplate() {
+		return template;
+	}
+
+	public void setTemplate(JdbcTemplate template) {
+		this.template = template;
+	}
+
+	public NamedParameterJdbcTemplate getNamedJdbcTemplate() {
+		return namedJdbcTemplate;
+	}
+
+	public void setNamedJdbcTemplate(NamedParameterJdbcTemplate namedJdbcTemplate) {
+		this.namedJdbcTemplate = namedJdbcTemplate;
 	}
 }
